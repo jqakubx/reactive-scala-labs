@@ -69,9 +69,9 @@ class CartActorTest
     expectMsg(nonEmptyMsg)
     expectMsg(1)
     cart ! StartCheckout
-    fishForMessage(){
+    fishForMessage() {
       case m: String if m == inCheckoutMsg => true
-      case _ :CheckoutStarted => false
+      case _: CheckoutStarted              => false
     }
     expectMsg(1)
   }
@@ -83,9 +83,9 @@ class CartActorTest
     expectMsg(nonEmptyMsg)
     expectMsg(1)
     cart ! StartCheckout
-    fishForMessage(){
+    fishForMessage() {
       case m: String if m == inCheckoutMsg => true
-      case _ :CheckoutStarted => false
+      case _: CheckoutStarted              => false
     }
     expectMsg(1)
     cart ! ConfirmCheckoutCancelled
@@ -100,9 +100,9 @@ class CartActorTest
     expectMsg(nonEmptyMsg)
     expectMsg(1)
     cart ! StartCheckout
-    fishForMessage(){
+    fishForMessage() {
       case m: String if m == inCheckoutMsg => true
-      case _ :CheckoutStarted => false
+      case _: CheckoutStarted              => false
     }
     expectMsg(1)
     cart ! ConfirmCheckoutClosed
@@ -117,9 +117,9 @@ class CartActorTest
     expectMsg(nonEmptyMsg)
     expectMsg(1)
     cart ! StartCheckout
-    fishForMessage(){
+    fishForMessage() {
       case m: String if m == inCheckoutMsg => true
-      case _ :CheckoutStarted => false
+      case _: CheckoutStarted              => false
     }
     expectMsg(1)
     cart ! AddItem("Henryk V")
