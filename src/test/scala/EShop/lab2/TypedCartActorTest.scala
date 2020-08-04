@@ -11,6 +11,8 @@ import scala.concurrent.duration._
 
 class TypedCartActorTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike with BeforeAndAfterAll {
 
+  override def afterAll: Unit = testKit.shutdownTestKit()
+
   import TypedCartActorTest._
   import TypedCartActor._
 
@@ -97,7 +99,7 @@ class TypedCartActorTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike 
     probe.expectMessage(inCheckoutMsg)
     probe.expectMessage(1)
 
-    cart ! ConfirmCheckoutCancelled
+    cart ! CancelCheckout
 
     probe.expectMessage(nonEmptyMsg)
     probe.expectMessage(1)
@@ -120,7 +122,7 @@ class TypedCartActorTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike 
     probe.expectMessage(inCheckoutMsg)
     probe.expectMessage(1)
 
-    cart ! ConfirmCheckoutClosed
+    cart ! CloseCheckout
 
     probe.expectMessage(emptyMsg)
     probe.expectMessage(0)

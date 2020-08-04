@@ -14,6 +14,8 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
   val deliveryMethod = "post"
   val paymentMethod  = "paypal"
 
+  override def afterAll: Unit = testKit.shutdownTestKit()
+
   import TypedCheckoutTest._
   import TypedCheckout._
 
@@ -151,7 +153,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     checkoutActor ! SelectDeliveryMethod(deliveryMethod)
     checkoutActor ! SelectPayment(paymentMethod)
     Thread.sleep(2000)
-    checkoutActor ! ConfirmPaymentReceived
+    checkoutActor ! ReceivePayment
     probe.expectMessage(cancelledMsg)
   }
 
@@ -166,7 +168,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     probe.expectMessage(selectingPaymentMethodMsg)
     checkoutActor ! SelectPayment(paymentMethod)
     probe.expectMessage(processingPaymentMsg)
-    checkoutActor ! ConfirmPaymentReceived
+    checkoutActor ! ReceivePayment
     probe.expectMessage(closedMsg)
   }
 
@@ -181,7 +183,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     probe.expectMessage(selectingPaymentMethodMsg)
     checkoutActor ! SelectPayment(paymentMethod)
     probe.expectMessage(processingPaymentMsg)
-    checkoutActor ! ConfirmPaymentReceived
+    checkoutActor ! ReceivePayment
     probe.expectMessage(closedMsg)
     checkoutActor ! CancelCheckout
     probe.expectNoMessage()

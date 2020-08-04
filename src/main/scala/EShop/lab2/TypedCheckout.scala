@@ -1,10 +1,10 @@
 package EShop.lab2
 
 import akka.actor.Cancellable
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-
 import scala.language.postfixOps
+
 import scala.concurrent.duration._
 
 object TypedCheckout {
@@ -21,7 +21,7 @@ object TypedCheckout {
   case object ExpireCheckout                      extends Command
   case class SelectPayment(payment: String)       extends Command
   case object ExpirePayment                       extends Command
-  case object ConfirmPaymentReceived              extends Command
+  case object ReceivePayment                      extends Command
 
   sealed trait Event
   case object CheckOutClosed                        extends Event

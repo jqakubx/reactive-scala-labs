@@ -33,7 +33,7 @@ class CartActor extends Actor {
 
   private def scheduleTimer: Cancellable = context.system.scheduler.scheduleOnce(cartTimerDuration, self, ExpireCart)
 
-  def receive: Receive = empty
+  def receive: Receive = ???
 
   def empty: Receive = LoggingReceive {
     case AddItem(item) =>
