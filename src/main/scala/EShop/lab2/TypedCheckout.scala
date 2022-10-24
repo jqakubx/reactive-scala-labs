@@ -21,17 +21,17 @@ object TypedCheckout {
   case class SelectDeliveryMethod(method: String)                                            extends Command
   case object CancelCheckout                                                                 extends Command
   case object ExpireCheckout                                                                 extends Command
-  case class SelectPayment(payment: String, orderManagerRef: ActorRef[OrderManager.Command]) extends Command
+  case class SelectPayment(payment: String, orderManagerRef: ActorRef[Event], omPaymentRef: ActorRef[Payment.Event]) extends Command
   case object ExpirePayment                                                                  extends Command
   case object ConfirmPaymentReceived                                                         extends Command
 
   sealed trait Event
-  case object CheckOutClosed                        extends Event
-  case class PaymentStarted(payment: ActorRef[Any]) extends Event
+  case object CheckOutClosed                                    extends Event
+  case class PaymentStarted(payment: ActorRef[Payment.Command]) extends Event
 }
 
 class TypedCheckout(
-  cartActor: ActorRef[TypedCartActor.Command]
+  cartActor: ActorRef[TypedCheckout.Event]
 ) {
   import TypedCheckout._
 
@@ -66,10 +66,10 @@ class TypedCheckout(
 
   def selectingPaymentMethod(timer: Cancellable): Behavior[TypedCheckout.Command] = Behaviors.receive((ctx, msg) =>
     msg match {
-      case SelectPayment(payment, orderManagerRef) =>
+      case SelectPayment(payment, orderManagerRef, omPaymentRef) =>
         timer.cancel()
-        val paymentActor = ctx.spawn(new Payment(payment, orderManagerRef, ctx.self).start, "PaymentActor")
-        orderManagerRef ! ConfirmPaymentStarted(paymentActor)
+        val paymentActor = ctx.spawn(new Payment(payment, omPaymentRef, ctx.self).start, "PaymentActor")
+        orderManagerRef ! PaymentStarted(paymentActor)
         processingPayment(paymentTimer(ctx))
       case CancelCheckout =>
         timer.cancel()
@@ -83,7 +83,7 @@ class TypedCheckout(
   def processingPayment(timer: Cancellable): Behavior[TypedCheckout.Command] = Behaviors.receive((ctx, msg) =>
     msg match {
       case ConfirmPaymentReceived =>
-        cartActor ! TypedCartActor.ConfirmCheckoutClosed
+        cartActor ! CheckOutClosed
         timer.cancel()
         closed
       case CancelCheckout =>

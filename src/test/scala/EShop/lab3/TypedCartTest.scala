@@ -1,5 +1,6 @@
 package EShop.lab3
 
+import EShop.lab2
 import EShop.lab2.{Cart, TypedCartActor}
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, BehaviorTestKit, ScalaTestWithActorTestKit, TestInbox}
 import org.scalatest.BeforeAndAfterAll
@@ -79,23 +80,23 @@ class TypedCartTest
   it should "start checkout" in {
     val test = BehaviorTestKit(new TypedCartActor().start)
     val exampleItem = "exampleItem"
-    val inbox = TestInbox[OrderManager.Command]()
+    val inbox = TestInbox[TypedCartActor.Event]()
 
     test.run(TypedCartActor.AddItem(exampleItem))
     test.run(TypedCartActor.StartCheckout(inbox.ref))
     val msg = inbox.receiveMessage()
-    assert(msg.isInstanceOf[OrderManager.ConfirmCheckoutStarted])
+    assert(msg.isInstanceOf[TypedCartActor.CheckoutStarted])
   }
 
   it should "start checkout (async)" in {
     val testKit = ActorTestKit()
     val test = testKit.spawn(new TypedCartActor().start)
     val exampleItem = "exampleItem"
-    val probe = testKit.createTestProbe[OrderManager.Command]()
+    val probe = testKit.createTestProbe[TypedCartActor.Event]()
 
     test ! AddItem(exampleItem)
     test ! StartCheckout(probe.ref)
     val msg = probe.receiveMessage()
-    assert(msg.isInstanceOf[OrderManager.ConfirmCheckoutStarted])
+    assert(msg.isInstanceOf[TypedCartActor.CheckoutStarted])
   }
 }
