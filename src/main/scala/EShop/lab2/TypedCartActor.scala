@@ -2,11 +2,14 @@ package EShop.lab2
 
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.{ActorRef, Behavior, scaladsl}
 
 import scala.language.postfixOps
 import scala.concurrent.duration._
 import EShop.lab3.OrderManager
+import EShop.lab3.OrderManager.ConfirmCheckoutStarted
+
+import java.beans.BeanInfo
 
 object TypedCartActor {
 
@@ -21,6 +24,7 @@ object TypedCartActor {
 
   sealed trait Event
   case class CheckoutStarted(checkoutRef: ActorRef[TypedCheckout.Command]) extends Event
+
 }
 
 class TypedCartActor {
@@ -36,8 +40,10 @@ class TypedCartActor {
 
   def empty: Behavior[TypedCartActor.Command] = Behaviors.receive((ctx, msg) =>
     msg match {
-      case AddItem(item) =>
-        nonEmpty(Cart.empty.addItem(item), scheduleTimer(ctx))
+      case AddItem(item) => nonEmpty(Cart.empty.addItem(item), scheduleTimer(ctx))
+      case GetItems(sender) =>
+        sender ! Cart.empty
+        Behaviors.same
       case _ => Behaviors.same
     }
   )
@@ -45,7 +51,8 @@ class TypedCartActor {
   def nonEmpty(cart: Cart, timer: Cancellable): Behavior[TypedCartActor.Command] = Behaviors.receive((ctx, msg) =>
     msg match {
       case AddItem(item) =>
-        nonEmpty(cart.addItem(item), timer)
+        timer.cancel()
+        nonEmpty(cart.addItem(item), scheduleTimer(ctx))
       case RemoveItem(item) =>
         if (cart.contains(item)) {
           val newCart = cart.removeItem(item)
@@ -53,15 +60,25 @@ class TypedCartActor {
             timer.cancel()
             empty
           } else {
-            nonEmpty(newCart, timer)
+            timer.cancel()
+            nonEmpty(newCart, scheduleTimer(ctx))
           }
         } else
           Behaviors.same
+      case GetItems(sender) =>
+        sender ! cart
+        Behaviors.same
+
       case ExpireCart =>
         empty
-      case StartCheckout(_) =>
+
+      case StartCheckout(orderManagerRef) =>
         timer.cancel()
+        val checkoutActor = ctx.spawn(new TypedCheckout(ctx.self).start, "CheckoutActor")
+        checkoutActor ! TypedCheckout.StartCheckout
+        orderManagerRef ! ConfirmCheckoutStarted(checkoutActor)
         inCheckout(cart)
+
       case _ => Behaviors.same
     }
   )
@@ -72,6 +89,7 @@ class TypedCartActor {
         empty
       case ConfirmCheckoutCancelled =>
         nonEmpty(cart, scheduleTimer(ctx))
+      case _ => Behaviors.same
     }
   )
 
