@@ -6,10 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior, scaladsl}
 
 import scala.language.postfixOps
 import scala.concurrent.duration._
-import EShop.lab3.OrderManager
-import EShop.lab3.OrderManager.ConfirmCheckoutStarted
 
-import java.beans.BeanInfo
 
 object TypedCartActor {
 
@@ -17,7 +14,7 @@ object TypedCartActor {
   case class AddItem(item: Any)                                             extends Command
   case class RemoveItem(item: Any)                                          extends Command
   case object ExpireCart                                                    extends Command
-  case class StartCheckout(orderManagerRef: ActorRef[OrderManager.Command]) extends Command
+  case class StartCheckout(orderManagerRef: ActorRef[Event]) extends Command
   case object ConfirmCheckoutCancelled                                      extends Command
   case object ConfirmCheckoutClosed                                         extends Command
   case class GetItems(sender: ActorRef[Cart]) extends Command // command made to make testing easier
@@ -33,10 +30,19 @@ class TypedCartActor {
 
   val cartTimerDuration: FiniteDuration = 5 seconds
 
+  var checkoutEventMapper: ActorRef[TypedCheckout.Event] = null
+
+
   private def scheduleTimer(context: ActorContext[TypedCartActor.Command]): Cancellable =
     context.scheduleOnce(cartTimerDuration, context.self, ExpireCart)
 
-  def start: Behavior[TypedCartActor.Command] = empty
+  def start: Behavior[TypedCartActor.Command] = Behaviors.setup { ctx =>
+    checkoutEventMapper =
+      ctx.messageAdapter {
+        case TypedCheckout.CheckOutClosed => ConfirmCheckoutClosed
+      }
+    empty
+  }
 
   def empty: Behavior[TypedCartActor.Command] = Behaviors.receive((ctx, msg) =>
     msg match {
@@ -74,9 +80,9 @@ class TypedCartActor {
 
       case StartCheckout(orderManagerRef) =>
         timer.cancel()
-        val checkoutActor = ctx.spawn(new TypedCheckout(ctx.self).start, "CheckoutActor")
+        val checkoutActor = ctx.spawn(new TypedCheckout(checkoutEventMapper).start, "CheckoutActor")
         checkoutActor ! TypedCheckout.StartCheckout
-        orderManagerRef ! ConfirmCheckoutStarted(checkoutActor)
+        orderManagerRef ! CheckoutStarted(checkoutActor)
         inCheckout(cart)
 
       case _ => Behaviors.same

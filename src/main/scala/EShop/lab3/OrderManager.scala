@@ -24,9 +24,30 @@ class OrderManager {
 
   import OrderManager._
 
+  var cartEventMapper: ActorRef[TypedCartActor.Event] = null
+
+  var checkoutEventMapper: ActorRef[TypedCheckout.Event] = null
+
+  var paymentEventMapper: ActorRef[Payment.Event] = null
+
   def start: Behavior[OrderManager.Command] = uninitialized
 
   def uninitialized: Behavior[OrderManager.Command] = Behaviors.setup { ctx =>
+    cartEventMapper =
+      ctx.messageAdapter {
+        case TypedCartActor.CheckoutStarted(checkoutRef) => ConfirmCheckoutStarted(checkoutRef)
+      }
+
+    checkoutEventMapper =
+      ctx.messageAdapter {
+        case TypedCheckout.PaymentStarted(paymentRef) => ConfirmPaymentStarted(paymentRef)
+      }
+
+    paymentEventMapper =
+      ctx.messageAdapter {
+        case Payment.PaymentReceived => ConfirmPaymentReceived
+      }
+
     val cartActor = ctx.spawn(new TypedCartActor().start, "cartActor")
     open(cartActor)
   }
@@ -53,7 +74,7 @@ class OrderManager {
     senderRef: ActorRef[Ack]
   ): Behavior[OrderManager.Command] =
     Behaviors.setup { ctx =>
-      cartActorRef ! TypedCartActor.StartCheckout(ctx.self)
+      cartActorRef ! TypedCartActor.StartCheckout(cartEventMapper)
         Behaviors.receive((ctx, msg) =>
           msg match {
             case ConfirmCheckoutStarted(checkoutRef) =>
@@ -68,7 +89,7 @@ class OrderManager {
       msg match {
         case SelectDeliveryAndPaymentMethod(delivery, payment, sender) =>
           checkoutActorRef ! TypedCheckout.SelectDeliveryMethod(delivery)
-          checkoutActorRef ! TypedCheckout.SelectPayment(payment, ctx.self)
+          checkoutActorRef ! TypedCheckout.SelectPayment(payment, checkoutEventMapper, paymentEventMapper)
           inPayment(sender)
       }
     )
