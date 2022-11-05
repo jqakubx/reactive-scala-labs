@@ -1,7 +1,7 @@
 package EShop.lab4
 
 import EShop.lab2.TypedCartActor
-import EShop.lab3.OrderManager
+import EShop.lab3.{OrderManager, Payment}
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit.SerializationSettings
@@ -24,7 +24,9 @@ class PersistentCheckoutTest
 
   private val cartActorProbe = testKit.createTestProbe[TypedCartActor.Command]()
 
-  private val orderManagerProbe = testKit.createTestProbe[OrderManager.Command]
+  private val orderManagerProbe = testKit.createTestProbe[Event]
+
+  private val paymentProbe = testKit.createTestProbe[Payment.Event]
 
   private val eventSourcedTestKit =
     EventSourcedBehaviorTestKit[Command, Event, State](
@@ -120,7 +122,7 @@ class PersistentCheckoutTest
 
     Thread.sleep(2000)
 
-    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref))
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref, paymentProbe.ref))
 
     resultSelectPayment.hasNoEvents shouldBe true
     resultSelectPayment.state shouldBe Cancelled
@@ -137,7 +139,7 @@ class PersistentCheckoutTest
     resultSelectDelivery.event.isInstanceOf[DeliveryMethodSelected] shouldBe true
     resultSelectDelivery.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
 
-    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref))
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref, paymentProbe.ref))
 
     resultSelectPayment.event.isInstanceOf[PaymentStarted] shouldBe true
     resultSelectPayment.state.isInstanceOf[ProcessingPayment] shouldBe true
@@ -154,7 +156,7 @@ class PersistentCheckoutTest
     resultSelectDelivery.event.isInstanceOf[DeliveryMethodSelected] shouldBe true
     resultSelectDelivery.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
 
-    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref))
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref, paymentProbe.ref))
 
     resultSelectPayment.event.isInstanceOf[PaymentStarted] shouldBe true
     resultSelectPayment.state.isInstanceOf[ProcessingPayment] shouldBe true
@@ -176,7 +178,7 @@ class PersistentCheckoutTest
     resultSelectDelivery.event.isInstanceOf[DeliveryMethodSelected] shouldBe true
     resultSelectDelivery.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
 
-    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref))
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref, paymentProbe.ref))
 
     resultSelectPayment.event.isInstanceOf[PaymentStarted] shouldBe true
     resultSelectPayment.state.isInstanceOf[ProcessingPayment] shouldBe true
@@ -200,7 +202,7 @@ class PersistentCheckoutTest
     resultSelectDelivery.event.isInstanceOf[DeliveryMethodSelected] shouldBe true
     resultSelectDelivery.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
 
-    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref))
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref, paymentProbe.ref))
 
     resultSelectPayment.event.isInstanceOf[PaymentStarted] shouldBe true
     resultSelectPayment.state.isInstanceOf[ProcessingPayment] shouldBe true
@@ -222,7 +224,7 @@ class PersistentCheckoutTest
     resultSelectDelivery.event.isInstanceOf[DeliveryMethodSelected] shouldBe true
     resultSelectDelivery.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
 
-    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref))
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment(paymentMethod, orderManagerProbe.ref, paymentProbe.ref))
 
     resultSelectPayment.event.isInstanceOf[PaymentStarted] shouldBe true
     resultSelectPayment.state.isInstanceOf[ProcessingPayment] shouldBe true

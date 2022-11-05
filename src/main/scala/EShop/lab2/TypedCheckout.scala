@@ -39,9 +39,6 @@ object TypedCheckout {
 class TypedCheckout(
   cartActor: ActorRef[TypedCheckout.Event]
 ) {
-class TypedCheckout(
-  cartActor: ActorRef[TypedCartActor.Command]
-) {
   import TypedCheckout._
 
   val checkoutTimerDuration: FiniteDuration = 1 seconds
