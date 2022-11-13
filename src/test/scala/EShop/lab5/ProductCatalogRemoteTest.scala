@@ -1,10 +1,10 @@
 package EShop.lab5
 
 import EShop.lab5.ProductCatalog.GetItems
-import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.actor.typed.receptionist.Receptionist
 import akka.actor.typed.scaladsl.AskPattern.Askable
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import org.scalatest.flatspec.AsyncFlatSpecLike

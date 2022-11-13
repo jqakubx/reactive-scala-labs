@@ -32,7 +32,7 @@ class PaymentServiceTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike 
       context.watch(paymentService)
 
       Behaviors.receiveSignal[Any] {
-        case (context, cf: ChildFailed) if cf.cause == PaymentServerError() =>
+        case (context, cf: ChildFailed) if cf.cause == PaymentClientError(StatusCodes.RequestTimeout.defaultMessage) =>
           failure.ref ! "failed"
           Behaviors.same
       }
@@ -50,7 +50,7 @@ class PaymentServiceTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike 
       context.watch(paymentService)
 
       Behaviors.receiveSignal[Any] {
-        case (context, cf: ChildFailed) if cf.cause == PaymentClientError() =>
+        case (context, cf: ChildFailed) if cf.cause == PaymentClientError(StatusCodes.NotFound.defaultMessage) =>
           failure.ref ! "failed"
           Behaviors.same
       }
