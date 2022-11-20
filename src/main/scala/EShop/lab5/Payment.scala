@@ -2,20 +2,16 @@ package EShop.lab5
 
 import EShop.lab2.TypedCheckout
 import EShop.lab3.OrderManager
-import EShop.lab5.Payment.{PaymentRejected, WrappedPaymentServiceResponse}
-import EShop.lab5.PaymentService.{PaymentClientError, PaymentServerError, PaymentSucceeded}
-import akka.actor.typed.{ActorRef, Behavior, ChildFailed, SupervisorStrategy}
+import EShop.lab5.PaymentService.PaymentSucceeded
 import akka.actor.typed.scaladsl.Behaviors
-import akka.stream.StreamTcpException
+import akka.actor.typed.{ActorRef, Behavior, SupervisorStrategy, Terminated}
 
 import scala.concurrent.duration._
-import akka.actor.typed.Terminated
 
 object Payment {
   sealed trait Message
   case object DoPayment                                                       extends Message
   case class WrappedPaymentServiceResponse(response: PaymentService.Response) extends Message
-
   sealed trait Response
   case object PaymentRejected extends Response
 
@@ -30,12 +26,32 @@ object Payment {
       .receive[Message](
         (context, msg) =>
           msg match {
-            case DoPayment                                       => ???
-            case WrappedPaymentServiceResponse(PaymentSucceeded) => ???
+            case DoPayment =>
+              val paymentServiceRef: ActorRef[PaymentService.Response] = context.messageAdapter {
+                case PaymentSucceeded =>
+                  WrappedPaymentServiceResponse(PaymentSucceeded)
+              }
+
+              val supervisedPaymentServiceRef =
+                Behaviors
+                  .supervise(PaymentService(method, paymentServiceRef))
+                  .onFailure(restartStrategy)
+
+              val paymentService = context.spawnAnonymous(supervisedPaymentServiceRef)
+              context.watch(paymentService)
+
+              Behaviors.same
+
+            case WrappedPaymentServiceResponse(PaymentSucceeded) =>
+              orderManager ! OrderManager.ConfirmPaymentReceived
+              checkout ! TypedCheckout.ConfirmPaymentReceived
+              Behaviors.stopped
         }
       )
       .receiveSignal {
-        case (context, Terminated(t)) => ???
+        case (_, Terminated(_)) =>
+          notifyAboutRejection(orderManager, checkout)
+          Behaviors.same
       }
 
   // please use this one to notify when supervised actor was stoped
