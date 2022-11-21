@@ -93,7 +93,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
   it should "be in cancelled state after expire checkout timeout in selectingPayment state" in {
     val probe             = testKit.createTestProbe[String]
     val orderManagerProbe = testKit.createTestProbe[Event]
-    val paymentProbe = testKit.createTestProbe[Payment.Event]
+    val paymentProbe      = testKit.createTestProbe[Payment.Event]
     val checkoutActor = testKit.spawn {
       val checkout = new TypedCheckout(testKit.createTestProbe[Event]().ref) {
         override val checkoutTimerDuration: FiniteDuration = 1.seconds
@@ -118,7 +118,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     val probe             = testKit.createTestProbe[String]
     val cartActorProbe    = testKit.createTestProbe[Event]
     val orderManagerProbe = testKit.createTestProbe[Event]
-    val paymentProbe = testKit.createTestProbe[Payment.Event]
+    val paymentProbe      = testKit.createTestProbe[Payment.Event]
     val checkoutActor     = checkoutActorWithResponseOnStateChange(testKit, probe.ref, cartActorProbe.ref)
 
     probe.expectMessage(emptyMsg)
@@ -134,7 +134,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     val probe             = testKit.createTestProbe[String]
     val cartActorProbe    = testKit.createTestProbe[Event]
     val orderManagerProbe = testKit.createTestProbe[Event]
-    val paymentProbe = testKit.createTestProbe[Payment.Event]
+    val paymentProbe      = testKit.createTestProbe[Payment.Event]
     val checkoutActor     = checkoutActorWithResponseOnStateChange(testKit, probe.ref, cartActorProbe.ref)
 
     probe.expectMessage(emptyMsg)
@@ -151,7 +151,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
   it should "be in cancelled state after expire checkout timeout in processingPayment state" in {
     val probe             = testKit.createTestProbe[String]
     val orderManagerProbe = testKit.createTestProbe[Event]
-    val paymentProbe = testKit.createTestProbe[Payment.Event]
+    val paymentProbe      = testKit.createTestProbe[Payment.Event]
     val checkoutActor = testKit.spawn {
       val checkout = new TypedCheckout(testKit.createTestProbe[Event]().ref) {
         override val paymentTimerDuration: FiniteDuration = 1.seconds
@@ -177,7 +177,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     val probe             = testKit.createTestProbe[String]()
     val cartActorProbe    = testKit.createTestProbe[Event]
     val orderManagerProbe = testKit.createTestProbe[Event]
-    val paymentProbe = testKit.createTestProbe[Payment.Event]
+    val paymentProbe      = testKit.createTestProbe[Payment.Event]
     val checkoutActor     = checkoutActorWithResponseOnStateChange(testKit, probe.ref, cartActorProbe.ref)
 
     probe.expectMessage(emptyMsg)
@@ -195,7 +195,7 @@ class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike w
     val probe             = testKit.createTestProbe[String]()
     val cartActorProbe    = testKit.createTestProbe[Event]
     val orderManagerProbe = testKit.createTestProbe[Event]
-    val paymentProbe = testKit.createTestProbe[Payment.Event]
+    val paymentProbe      = testKit.createTestProbe[Payment.Event]
     val checkoutActor     = checkoutActorWithResponseOnStateChange(testKit, probe.ref, cartActorProbe.ref)
 
     probe.expectMessage(emptyMsg)

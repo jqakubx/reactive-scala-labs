@@ -26,13 +26,12 @@ object HttpWorker {
   case class WorkerResponse(work: String)
 
   def apply(): Behavior[Command] =
-    Behaviors.receive(
-      (context, msg) =>
-        msg match {
-          case Work(work, replyTo) =>
-            context.log.info(s"I got to work on $work")
-            replyTo ! WorkerResponse("Done")
-            Behaviors.same
+    Behaviors.receive((context, msg) =>
+      msg match {
+        case Work(work, replyTo) =>
+          context.log.info(s"I got to work on $work")
+          replyTo ! WorkerResponse("Done")
+          Behaviors.same
       }
     )
 }
@@ -89,7 +88,7 @@ class WorkHttpServer extends JsonSupport {
     println(s"Server now online. Please navigate to http://localhost:8080/hello\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
     bindingFuture
-      .flatMap(_.unbind()) // trigger unbinding from the port
+      .flatMap(_.unbind())                 // trigger unbinding from the port
       .onComplete(_ => system.terminate()) // and shutdown when done
   }
 }

@@ -22,9 +22,9 @@ class TypedCartTest
 
   //use GetItems command which was added to make test easier
   it should "add item properly" in {
-    val test = BehaviorTestKit(new TypedCartActor().start)
+    val test        = BehaviorTestKit(new TypedCartActor().start)
     val exampleItem = "exampleItem"
-    val inbox = TestInbox[Cart]()
+    val inbox       = TestInbox[Cart]()
 
     test.run(TypedCartActor.AddItem(exampleItem))
     test.run(TypedCartActor.GetItems(inbox.ref))
@@ -33,9 +33,9 @@ class TypedCartTest
   }
 
   it should "add item properly (async)" in {
-    val testKit = ActorTestKit()
-    val test = testKit.spawn(new TypedCartActor().start)
-    val probe = testKit.createTestProbe[Cart]()
+    val testKit     = ActorTestKit()
+    val test        = testKit.spawn(new TypedCartActor().start)
+    val probe       = testKit.createTestProbe[Cart]()
     val exampleItem = "exampleItem"
 
     test ! AddItem(exampleItem)
@@ -45,9 +45,9 @@ class TypedCartTest
   }
 
   it should "be empty after adding and removing the same item" in {
-    val test = BehaviorTestKit(new TypedCartActor().start)
+    val test        = BehaviorTestKit(new TypedCartActor().start)
     val exampleItem = "exampleItem"
-    val inbox = TestInbox[Cart]()
+    val inbox       = TestInbox[Cart]()
 
     test.run(TypedCartActor.AddItem(exampleItem))
     test.run(TypedCartActor.GetItems(inbox.ref))
@@ -61,9 +61,9 @@ class TypedCartTest
   }
 
   it should "be empty after adding and removing the same item (async)" in {
-    val testKit = ActorTestKit()
-    val test = testKit.spawn(new TypedCartActor().start)
-    val probe = testKit.createTestProbe[Cart]()
+    val testKit     = ActorTestKit()
+    val test        = testKit.spawn(new TypedCartActor().start)
+    val probe       = testKit.createTestProbe[Cart]()
     val exampleItem = "exampleItem"
 
     test ! AddItem(exampleItem)
@@ -78,9 +78,9 @@ class TypedCartTest
   }
 
   it should "start checkout" in {
-    val test = BehaviorTestKit(new TypedCartActor().start)
+    val test        = BehaviorTestKit(new TypedCartActor().start)
     val exampleItem = "exampleItem"
-    val inbox = TestInbox[TypedCartActor.Event]()
+    val inbox       = TestInbox[TypedCartActor.Event]()
 
     test.run(TypedCartActor.AddItem(exampleItem))
     test.run(TypedCartActor.StartCheckout(inbox.ref))
@@ -89,10 +89,10 @@ class TypedCartTest
   }
 
   it should "start checkout (async)" in {
-    val testKit = ActorTestKit()
-    val test = testKit.spawn(new TypedCartActor().start)
+    val testKit     = ActorTestKit()
+    val test        = testKit.spawn(new TypedCartActor().start)
     val exampleItem = "exampleItem"
-    val probe = testKit.createTestProbe[TypedCartActor.Event]()
+    val probe       = testKit.createTestProbe[TypedCartActor.Event]()
 
     test ! AddItem(exampleItem)
     test ! StartCheckout(probe.ref)

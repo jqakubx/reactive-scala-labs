@@ -14,15 +14,16 @@ import EShop.lab3.{OrderManager, Payment}
 object TypedCheckout {
 
   sealed trait Command
-  case object StartCheckout                                                                  extends Command
-  case class SelectDeliveryMethod(method: String)                                            extends Command
-  case object CancelCheckout                                                                 extends Command
-  case object ExpireCheckout                                                                 extends Command
-  case class SelectPayment(payment: String, orderManagerRef: ActorRef[Event], omPaymentRef: ActorRef[Payment.Event]) extends Command
-  case object ExpirePayment                                                                  extends Command
-  case object ConfirmPaymentReceived                                                         extends Command
-  case object PaymentRejected                                                                extends Command
-  case object PaymentRestarted                                                               extends Command
+  case object StartCheckout                       extends Command
+  case class SelectDeliveryMethod(method: String) extends Command
+  case object CancelCheckout                      extends Command
+  case object ExpireCheckout                      extends Command
+  case class SelectPayment(payment: String, orderManagerRef: ActorRef[Event], omPaymentRef: ActorRef[Payment.Event])
+    extends Command
+  case object ExpirePayment          extends Command
+  case object ConfirmPaymentReceived extends Command
+  case object PaymentRejected        extends Command
+  case object PaymentRestarted       extends Command
 
   sealed trait Event
   case object CheckOutClosed                                    extends Event

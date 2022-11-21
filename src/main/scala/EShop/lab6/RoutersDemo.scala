@@ -10,12 +10,11 @@ object Worker {
   case class Work(work: String)
 
   def apply(): Behavior[Work] =
-    Behaviors.receive[Work](
-      (context, msg) =>
-        msg match {
-          case Work(work) =>
-            context.log.info(s"I got to work on $work")
-            Behaviors.stopped
+    Behaviors.receive[Work]((context, msg) =>
+      msg match {
+        case Work(work) =>
+          context.log.info(s"I got to work on $work")
+          Behaviors.stopped
       }
     )
 }
@@ -23,7 +22,8 @@ object Worker {
 /**
  * Master that spawns `nbOfRoutees` local workers via pool router and distributes the work between them
  *
- * @see https://doc.akka.io/docs/akka/current/typed/routers.html#pool-router
+ * @see
+ *   https://doc.akka.io/docs/akka/current/typed/routers.html#pool-router
  */
 object Master {
   case class WorkToDistribute(work: String)
@@ -37,15 +37,13 @@ object Master {
       context.watch(router)
 
       Behaviors
-        .receiveMessage[WorkToDistribute] {
-          case WorkToDistribute(work) =>
-            router ! Worker.Work(work)
-            Behaviors.same
+        .receiveMessage[WorkToDistribute] { case WorkToDistribute(work) =>
+          router ! Worker.Work(work)
+          Behaviors.same
         }
-        .receiveSignal {
-          case (context, Terminated(router)) =>
-            context.system.terminate()
-            Behaviors.stopped
+        .receiveSignal { case (context, Terminated(router)) =>
+          context.system.terminate()
+          Behaviors.stopped
         }
     }
 }
@@ -57,13 +55,12 @@ object Client {
   case object Init
 
   def apply(): Behavior[Init.type] =
-    Behaviors.receive(
-      (context, msg) =>
-        msg match {
-          case Init =>
-            val master = context.spawn(Master(), "master")
-            master ! Master.WorkToDistribute("some work")
-            Behaviors.same
+    Behaviors.receive((context, msg) =>
+      msg match {
+        case Init =>
+          val master = context.spawn(Master(), "master")
+          master ! Master.WorkToDistribute("some work")
+          Behaviors.same
       }
     )
 }

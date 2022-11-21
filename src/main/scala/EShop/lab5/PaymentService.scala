@@ -23,13 +23,13 @@ object PaymentService {
     method: String,
     payment: ActorRef[Response]
   ): Behavior[HttpResponse] = Behaviors.setup { context =>
-    implicit val system: ActorSystem[Nothing] = context.system
+    implicit val system: ActorSystem[Nothing]               = context.system
     implicit val executionContext: ExecutionContextExecutor = context.system.executionContext
 
     val response: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = getURI(method)))
 
     response.onComplete {
-      case Success(value) => context.self ! value
+      case Success(value)     => context.self ! value
       case Failure(exception) => throw exception
     }
 

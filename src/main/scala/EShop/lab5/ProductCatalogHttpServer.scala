@@ -33,7 +33,7 @@ trait ProductCatalogJsonSupport extends SprayJsonSupport with DefaultJsonProtoco
       }
   }
   implicit lazy val getItemsFormat = jsonFormat2(ProductCatalogHttpServer.GetItems)
-  implicit lazy val itemFormat = jsonFormat5(ProductCatalog.Item)
+  implicit lazy val itemFormat     = jsonFormat5(ProductCatalog.Item)
   implicit lazy val responseFormat = jsonFormat1(ProductCatalogHttpServer.Response)
 }
 
@@ -52,26 +52,25 @@ class ProductCatalogHttpServer extends ProductCatalogJsonSupport {
   implicit val timeout: Timeout = 3.second
 
   private val productCatalogActorSystem = ActorSystem[Nothing](Behaviors.empty, "ProductCatalog")
-  implicit val scheduler = productCatalogActorSystem.scheduler
+  implicit val scheduler                = productCatalogActorSystem.scheduler
 
   def routes: Route = {
     path("catalog") {
       Directives.get {
         parameters(Symbol("brand"), Symbol("keywords").as[String].repeated) { (brand, keywords) =>
-          val listingFuture = actorSystem.receptionist.ask(
-            (ref: ActorRef[Receptionist.Listing]) => Receptionist.find(ProductCatalog.ProductCatalogServiceKey, ref)
+          val listingFuture = actorSystem.receptionist.ask((ref: ActorRef[Receptionist.Listing]) =>
+            Receptionist.find(ProductCatalog.ProductCatalogServiceKey, ref)
           )
-          onSuccess(listingFuture) {
-            case ProductCatalog.ProductCatalogServiceKey.Listing(listing) =>
-              try {
-                val productCatalog = listing.head
-                val items = productCatalog.ask(ref => GetItems(brand, keywords.toList, ref)).mapTo[ProductCatalog.Items]
-                onSuccess(items) {
-                  case ProductCatalog.Items(items) => complete(items)
-                }
-              } catch {
-                case e: NoSuchElementException => failWith(e)
+          onSuccess(listingFuture) { case ProductCatalog.ProductCatalogServiceKey.Listing(listing) =>
+            try {
+              val productCatalog = listing.head
+              val items = productCatalog.ask(ref => GetItems(brand, keywords.toList, ref)).mapTo[ProductCatalog.Items]
+              onSuccess(items) { case ProductCatalog.Items(items) =>
+                complete(items)
               }
+            } catch {
+              case e: NoSuchElementException => failWith(e)
+            }
           }
         }
       }
@@ -82,6 +81,5 @@ class ProductCatalogHttpServer extends ProductCatalogJsonSupport {
     Http().newServerAt("localhost", port).bind(routes)
     Await.ready(actorSystem.whenTerminated, Duration.Inf)
   }
-
 
 }

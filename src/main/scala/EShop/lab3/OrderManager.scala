@@ -35,20 +35,17 @@ class OrderManager {
   def start: Behavior[OrderManager.Command] = uninitialized
 
   def uninitialized: Behavior[OrderManager.Command] = Behaviors.setup { ctx =>
-    cartEventMapper =
-      ctx.messageAdapter {
-        case TypedCartActor.CheckoutStarted(checkoutRef) => ConfirmCheckoutStarted(checkoutRef)
-      }
+    cartEventMapper = ctx.messageAdapter { case TypedCartActor.CheckoutStarted(checkoutRef) =>
+      ConfirmCheckoutStarted(checkoutRef)
+    }
 
-    checkoutEventMapper =
-      ctx.messageAdapter {
-        case TypedCheckout.PaymentStarted(paymentRef) => ConfirmPaymentStarted(paymentRef)
-      }
+    checkoutEventMapper = ctx.messageAdapter { case TypedCheckout.PaymentStarted(paymentRef) =>
+      ConfirmPaymentStarted(paymentRef)
+    }
 
-    paymentEventMapper =
-      ctx.messageAdapter {
-        case Payment.PaymentReceived => ConfirmPaymentReceived
-      }
+    paymentEventMapper = ctx.messageAdapter { case Payment.PaymentReceived =>
+      ConfirmPaymentReceived
+    }
 
     val cartActor = ctx.spawn(new TypedCartActor().start, "cartActor")
     open(cartActor)
@@ -77,13 +74,14 @@ class OrderManager {
   ): Behavior[OrderManager.Command] =
     Behaviors.setup { ctx =>
       cartActorRef ! TypedCartActor.StartCheckout(cartEventMapper)
-        Behaviors.receive((ctx, msg) =>
-          msg match {
-            case ConfirmCheckoutStarted(checkoutRef) =>
-              senderRef ! Done
-              inCheckout(checkoutRef)
-            case _ => Behaviors.same
-          })
+      Behaviors.receive((ctx, msg) =>
+        msg match {
+          case ConfirmCheckoutStarted(checkoutRef) =>
+            senderRef ! Done
+            inCheckout(checkoutRef)
+          case _ => Behaviors.same
+        }
+      )
     }
 
   def inCheckout(checkoutActorRef: ActorRef[TypedCheckout.Command]): Behavior[OrderManager.Command] =

@@ -20,10 +20,10 @@ class TypedCheckoutTest
     testKit.shutdownTestKit()
 
   it should "Send close confirmation to cart" in {
-    val inbox = TestInbox[TypedCheckout.Event]()
-    val inboxOM = TestInbox[TypedCartActor.Command]()
+    val inbox          = TestInbox[TypedCheckout.Event]()
+    val inboxOM        = TestInbox[TypedCartActor.Command]()
     val paymentInboxOM = TestInbox[Payment.Event]()
-    val checkoutActor = BehaviorTestKit(new TypedCheckout(inbox.ref).start)
+    val checkoutActor  = BehaviorTestKit(new TypedCheckout(inbox.ref).start)
 
     checkoutActor.run(TypedCheckout.StartCheckout)
     checkoutActor.run(TypedCheckout.SelectDeliveryMethod("delievery"))
@@ -34,10 +34,10 @@ class TypedCheckoutTest
   }
 
   it should "Send close confirmation to cart (async)" in {
-    val inbox = testKit.createTestProbe[TypedCheckout.Event]()
-    val inboxOM = TestInbox[TypedCartActor.Command]()
+    val inbox          = testKit.createTestProbe[TypedCheckout.Event]()
+    val inboxOM        = TestInbox[TypedCartActor.Command]()
     val paymentInboxOM = TestInbox[Payment.Event]()
-    val checkoutActor = testKit.spawn(new TypedCheckout(inbox.ref).start)
+    val checkoutActor  = testKit.spawn(new TypedCheckout(inbox.ref).start)
 
     checkoutActor ! TypedCheckout.StartCheckout
     checkoutActor ! TypedCheckout.SelectDeliveryMethod("delievery")

@@ -19,7 +19,6 @@ class PersistentCheckout {
   def schedule(context: ActorContext[Command], expire: TypedCheckout.Command): Cancellable =
     context.scheduleOnce(timerDuration, context.self, expire)
 
-
   def apply(cartActor: ActorRef[TypedCartActor.Command], persistenceId: PersistenceId): Behavior[Command] =
     Behaviors.setup { context =>
       EventSourcedBehavior(
@@ -42,7 +41,6 @@ class PersistentCheckout {
           case _ => Effect.none
         }
 
-
       case SelectingDelivery(_) =>
         command match {
           case CancelCheckout =>
@@ -58,10 +56,10 @@ class PersistentCheckout {
         command match {
           case SelectPayment(payment, orderManagerRef, omPaymentRef) =>
             val paymentActor = context.spawn(new Payment(payment, omPaymentRef, context.self).start, "PaymentActor")
-            Effect.persist(PaymentStarted(paymentActor))
-              .thenRun {
-                _ =>
-                  orderManagerRef ! PaymentStarted(paymentActor)
+            Effect
+              .persist(PaymentStarted(paymentActor))
+              .thenRun { _ =>
+                orderManagerRef ! PaymentStarted(paymentActor)
               }
           case CancelCheckout =>
             Effect.persist(CheckoutCancelled)
@@ -73,10 +71,10 @@ class PersistentCheckout {
       case ProcessingPayment(_) =>
         command match {
           case ConfirmPaymentReceived =>
-            Effect.persist(CheckOutClosed)
-              .thenRun {
-                _ =>
-                  cartActor ! TypedCartActor.ConfirmCheckoutClosed
+            Effect
+              .persist(CheckOutClosed)
+              .thenRun { _ =>
+                cartActor ! TypedCartActor.ConfirmCheckoutClosed
               }
           case CancelCheckout =>
             Effect.persist(CheckoutCancelled)

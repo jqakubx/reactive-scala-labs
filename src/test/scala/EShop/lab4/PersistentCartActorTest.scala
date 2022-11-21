@@ -180,7 +180,8 @@ class PersistentCartActorTest
     resultAdd.event.isInstanceOf[ItemAdded] shouldBe true
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
-    val resultStartCheckout = eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[lab2.TypedCartActor.Event]().ref))
+    val resultStartCheckout =
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[lab2.TypedCartActor.Event]().ref))
     resultStartCheckout.event.isInstanceOf[CheckoutStarted] shouldBe true
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
 
@@ -206,7 +207,8 @@ class PersistentCartActorTest
     resultAdd.event.isInstanceOf[ItemAdded] shouldBe true
     resultAdd.state.isInstanceOf[NonEmpty] shouldBe true
 
-    val resultStartCheckout = eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[lab2.TypedCartActor.Event]().ref))
+    val resultStartCheckout =
+      eventSourcedTestKit.runCommand(StartCheckout(testKit.createTestProbe[lab2.TypedCartActor.Event]().ref))
     resultStartCheckout.event.isInstanceOf[CheckoutStarted] shouldBe true
     resultStartCheckout.state.isInstanceOf[InCheckout] shouldBe true
 

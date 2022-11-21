@@ -18,7 +18,8 @@ import scala.util.Try
 /**
  * Basically a [[HttpWorker]] that registers itself with the receptionist
  *
- * @see https://doc.akka.io/docs/akka/current/typed/actor-discovery.html#receptionist
+ * @see
+ *   https://doc.akka.io/docs/akka/current/typed/actor-discovery.html#receptionist
  */
 object RegisteredHttpWorker {
   val HttpWorkerKey: ServiceKey[HttpWorker.Command] = ServiceKey("HttpWorker")
@@ -80,11 +81,12 @@ object WorkHttpClusterApp extends App {
 }
 
 /**
- * The server that distributes all of the requests to the workers registered in the cluster via the group router.
- * Will spawn `httpWorkersNodeCount` [[HttpWorkersNode]] instances that will each spawn `instancesPerNode`
+ * The server that distributes all of the requests to the workers registered in the cluster via the group router. Will
+ * spawn `httpWorkersNodeCount` [[HttpWorkersNode]] instances that will each spawn `instancesPerNode`
  * [[RegisteredHttpWorker]] instances giving us `httpWorkersNodeCount` * `instancesPerNode` workers in total.
  *
- * @see https://doc.akka.io/docs/akka/current/typed/routers.html#group-router
+ * @see
+ *   https://doc.akka.io/docs/akka/current/typed/routers.html#group-router
  */
 class WorkHttpServerInCluster() extends JsonSupport {
   private val config               = ConfigFactory.load()

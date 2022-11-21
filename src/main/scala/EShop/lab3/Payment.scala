@@ -11,7 +11,7 @@ object Payment {
   case object DoPayment extends Command
 
   sealed trait Event
-  case object PaymentReceived extends Event
+  case object PaymentReceived  extends Event
   case object PaymentConfirmed extends Event
 
 }

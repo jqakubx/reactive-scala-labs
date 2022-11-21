@@ -3,24 +3,23 @@ package EShop.lab2
 import EShop.lab3.OrderManager
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import akka.actor.typed.{ActorRef, Behavior, scaladsl}
+import akka.actor.typed.{scaladsl, ActorRef, Behavior}
 
 import akka.actor.typed.{ActorRef, Behavior}
 
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
-
 object TypedCartActor {
 
   sealed trait Command
-  case class AddItem(item: Any)                                             extends Command
-  case class RemoveItem(item: Any)                                          extends Command
-  case object ExpireCart                                                    extends Command
+  case class AddItem(item: Any)                              extends Command
+  case class RemoveItem(item: Any)                           extends Command
+  case object ExpireCart                                     extends Command
   case class StartCheckout(orderManagerRef: ActorRef[Event]) extends Command
-  case object ConfirmCheckoutCancelled                                      extends Command
-  case object ConfirmCheckoutClosed                                         extends Command
-  case class GetItems(sender: ActorRef[Cart]) extends Command // command made to make testing easier
+  case object ConfirmCheckoutCancelled                       extends Command
+  case object ConfirmCheckoutClosed                          extends Command
+  case class GetItems(sender: ActorRef[Cart])                extends Command // command made to make testing easier
 
   sealed trait Event
   case class CheckoutStarted(checkoutRef: ActorRef[TypedCheckout.Command]) extends Event
@@ -50,15 +49,13 @@ class TypedCartActor {
 
   var checkoutEventMapper: ActorRef[TypedCheckout.Event] = null
 
-
   private def scheduleTimer(context: ActorContext[TypedCartActor.Command]): Cancellable =
     context.scheduleOnce(cartTimerDuration, context.self, ExpireCart)
 
   def start: Behavior[TypedCartActor.Command] = Behaviors.setup { ctx =>
-    checkoutEventMapper =
-      ctx.messageAdapter {
-        case TypedCheckout.CheckOutClosed => ConfirmCheckoutClosed
-      }
+    checkoutEventMapper = ctx.messageAdapter { case TypedCheckout.CheckOutClosed =>
+      ConfirmCheckoutClosed
+    }
     empty
   }
 
