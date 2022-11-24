@@ -23,35 +23,32 @@ object Payment {
     checkout: ActorRef[TypedCheckout.Command]
   ): Behavior[Message] =
     Behaviors
-      .receive[Message](
-        (context, msg) =>
-          msg match {
-            case DoPayment =>
-              val paymentServiceRef: ActorRef[PaymentService.Response] = context.messageAdapter {
-                case PaymentSucceeded =>
-                  WrappedPaymentServiceResponse(PaymentSucceeded)
-              }
+      .receive[Message]((context, msg) =>
+        msg match {
+          case DoPayment =>
+            val paymentServiceRef: ActorRef[PaymentService.Response] = context.messageAdapter { case PaymentSucceeded =>
+              WrappedPaymentServiceResponse(PaymentSucceeded)
+            }
 
-              val supervisedPaymentServiceRef =
-                Behaviors
-                  .supervise(PaymentService(method, paymentServiceRef))
-                  .onFailure(restartStrategy)
+            val supervisedPaymentServiceRef =
+              Behaviors
+                .supervise(PaymentService(method, paymentServiceRef))
+                .onFailure(restartStrategy)
 
-              val paymentService = context.spawnAnonymous(supervisedPaymentServiceRef)
-              context.watch(paymentService)
+            val paymentService = context.spawnAnonymous(supervisedPaymentServiceRef)
+            context.watch(paymentService)
 
-              Behaviors.same
+            Behaviors.same
 
-            case WrappedPaymentServiceResponse(PaymentSucceeded) =>
-              orderManager ! OrderManager.ConfirmPaymentReceived
-              checkout ! TypedCheckout.ConfirmPaymentReceived
-              Behaviors.stopped
+          case WrappedPaymentServiceResponse(PaymentSucceeded) =>
+            orderManager ! OrderManager.ConfirmPaymentReceived
+            checkout ! TypedCheckout.ConfirmPaymentReceived
+            Behaviors.stopped
         }
       )
-      .receiveSignal {
-        case (_, Terminated(_)) =>
-          notifyAboutRejection(orderManager, checkout)
-          Behaviors.same
+      .receiveSignal { case (_, Terminated(_)) =>
+        notifyAboutRejection(orderManager, checkout)
+        Behaviors.same
       }
 
   // please use this one to notify when supervised actor was stoped

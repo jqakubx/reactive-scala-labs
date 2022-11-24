@@ -21,8 +21,8 @@ class PersistentCartActor {
   var checkoutEventMapper: ActorRef[TypedCheckout.Event] = null
 
   def apply(persistenceId: PersistenceId): Behavior[Command] = Behaviors.setup { context =>
-    checkoutEventMapper = context.messageAdapter {
-      case TypedCheckout.CheckOutClosed => ConfirmCheckoutClosed
+    checkoutEventMapper = context.messageAdapter { case TypedCheckout.CheckOutClosed =>
+      ConfirmCheckoutClosed
     }
     EventSourcedBehavior[Command, Event, State](
       persistenceId,
@@ -37,7 +37,7 @@ class PersistentCartActor {
       case Empty =>
         command match {
           case AddItem(item) => Effect.persist(ItemAdded(item))
-          case _ => Effect.none
+          case _             => Effect.none
         }
 
       case NonEmpty(cart, _) =>
@@ -55,11 +55,11 @@ class PersistentCartActor {
           case ExpireCart => Effect.persist(CartExpired)
           case StartCheckout(orderManagerRef) =>
             val checkoutActor = context.spawn(new TypedCheckout(checkoutEventMapper).start, "CheckoutActor")
-            Effect.persist(CheckoutStarted(checkoutActor))
-              .thenRun {
-                _ =>
-                  checkoutActor ! TypedCheckout.StartCheckout
-                  orderManagerRef ! CheckoutStarted(checkoutActor)
+            Effect
+              .persist(CheckoutStarted(checkoutActor))
+              .thenRun { _ =>
+                checkoutActor ! TypedCheckout.StartCheckout
+                orderManagerRef ! CheckoutStarted(checkoutActor)
               }
           case _ => Effect.none
 
