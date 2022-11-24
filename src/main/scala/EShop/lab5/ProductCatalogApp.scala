@@ -1,5 +1,7 @@
 package EShop.lab5
 
+import EShop.lab6.PubSubActor
+import akka.actor.typed.pubsub.Topic
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
@@ -8,6 +10,7 @@ import java.net.URI
 import java.util.zip.GZIPInputStream
 import com.typesafe.config.ConfigFactory
 
+import java.util.UUID.randomUUID
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.io.Source
@@ -61,8 +64,13 @@ object ProductCatalog {
   def apply(searchService: SearchService): Behavior[Query] = Behaviors.setup { context =>
     context.system.receptionist ! Receptionist.register(ProductCatalogServiceKey, context.self)
 
+    val topic =
+      context.spawn(Topic[PubSubActor.AddStats]("product-catalog-topic"), "ProductCatalogTopic" + randomUUID())
+
     Behaviors.receiveMessage { case GetItems(brand, productKeyWords, sender) =>
+      println("RECEIVED")
       sender ! Items(searchService.search(brand, productKeyWords))
+      topic ! Topic.Publish(PubSubActor.AddStats(context.self.toString))
       Behaviors.same
     }
   }
